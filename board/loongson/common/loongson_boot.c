@@ -29,6 +29,16 @@ static int loongson_boot_nand(void)
 #endif
 }
 
+static int loongson_boot_spinand(void)
+{
+#ifdef BOOT_SPINAND_DEFAULT
+	printf("boot system from spinand .....\r\n");
+	return run_command(BOOT_SPINAND_DEFAULT, 0);
+#else
+	return -1;
+#endif
+}
+
 static int loongson_boot_emmc(void)
 {
 #ifdef BOOT_EMMC_DEFAULT
@@ -49,8 +59,8 @@ static int loongson_boot_sdcard(void)
 #endif
 }
 
-static char* boot_param_list[LOONGSON_BOOT_TYPE_SIZE] = {"ssd", "nand", "emmc", "sdcard"};
-static loongson_boot_func boot_func_list[LOONGSON_BOOT_TYPE_SIZE] = {loongson_boot_ssd, loongson_boot_nand, loongson_boot_emmc, loongson_boot_sdcard};
+static char* boot_param_list[LOONGSON_BOOT_TYPE_SIZE] = {"ssd", "nand", "emmc", "sdcard", "spinand"};
+static loongson_boot_func boot_func_list[LOONGSON_BOOT_TYPE_SIZE] = {loongson_boot_ssd, loongson_boot_nand, loongson_boot_emmc, loongson_boot_sdcard, loongson_boot_spinand};
 
 static int do_loongson_boot(struct cmd_tbl *cmdtp, int flag, int argc, char * const argv[])
 {
@@ -90,11 +100,18 @@ static int do_loongson_boot(struct cmd_tbl *cmdtp, int flag, int argc, char * co
 #define LOONGSON_BOOT_NAND_USAGE "not support boot from nand\n"
 #endif
 
+#ifdef BOOT_SPINAND_DEFAULT
+#define LOONGSON_BOOT_SPINAND_USAGE "option: spinand: boot from spi nand\n"
+#else
+#define LOONGSON_BOOT_SPINAND_USAGE "not support boot from spi nand\n"
+#endif
+
 #define LOONGSON_BOOT_HELP LOONGSON_BOOT_HELP_HEAD
 
 #define LOONGSON_BOOT_USAGE LOONGSON_BOOT_USAGE_HEAD \
 							LOONGSON_BOOT_SSD_USAGE \
-							LOONGSON_BOOT_NAND_USAGE
+							LOONGSON_BOOT_NAND_USAGE \
+							LOONGSON_BOOT_SPINAND_USAGE
 
 U_BOOT_CMD(
 	loongson_boot,    2,    1,     do_loongson_boot,
@@ -116,7 +133,7 @@ static int do_loongson_factory_boot(struct cmd_tbl *cmdtp, int flag, int argc, c
 
 	//ret = run_command("loongson_update dhcp uboot", 0);
 
-	ret = run_command("general_load --if net:192.168.1.2 --fmt dhcp --sym rootfs.img --decompress", 0);
+	ret = run_command("general_load --if net --fmt dhcp --sym rootfs.img --decompress", 0);
 	if (ret)
 		return ret;
 

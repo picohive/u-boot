@@ -142,7 +142,7 @@ static char *updatemenu_bootselect[] = {
 	"System Boot from sata disk=loongson_boot ssd\0",
 	"System Boot from sata disk(boof.cfg)=bootcfg scsi\0",
 #endif
-#ifdef CONFIG_MTD_RAW_NAND
+#if defined(CONFIG_MTD_RAW_NAND) || defined(CONFIG_MTD_SPI_NAND)
 	"System Boot from nand flash=loongson_boot nand\0",
 #endif
 #ifdef CONFIG_MMC

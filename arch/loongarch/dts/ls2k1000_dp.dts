@@ -81,7 +81,7 @@
 		/* ecc-enable; */
 		/* addr-mirror; */
 		/* multi-channel; */
-		reset-revert;
+		// reset-revert;
 	};
 
 	vdd_fan: regulator-fan {

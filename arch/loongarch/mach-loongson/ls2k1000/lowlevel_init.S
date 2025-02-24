@@ -149,6 +149,13 @@ wait_to_be_killed:
 	ori	    t2,	t2,	LS_PCIE_CMD_MEM_ENABLE|7
 	st.w	t2,	t0,	LS_PCIE_TYPE0_CMD_OFFSET
 
+    li.d	t0, LS_PCIE_DMA_ADDR
+	li.d	t1, 0x1fe00c00
+	st.w	t1,	t0,	LS_PCIE_TYPE0_BAR0_OFFSET
+	ld.w	t2,	t0,	LS_PCIE_TYPE0_CMD_OFFSET
+	ori	    t2,	t2,	LS_PCIE_CMD_MEM_ENABLE|7
+	st.w	t2,	t0,	LS_PCIE_TYPE0_CMD_OFFSET
+
 	watchdog_close
 
 	/* ACPI Power Button Status clear */

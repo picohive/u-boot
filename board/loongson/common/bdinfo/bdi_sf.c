@@ -154,7 +154,7 @@ static int read_bdinfo(struct ls_bdinfo *bdi, u8 *buf, size_t bufsize)
 	size_t len;
 	size_t i, offset;
 	int ret = 0;
-	struct spi_flash *env_flash;
+	struct spi_flash *env_flash = NULL;
 	struct mtd_partition part;
 	int read_time;
 
@@ -167,7 +167,11 @@ static int read_bdinfo(struct ls_bdinfo *bdi, u8 *buf, size_t bufsize)
 		return ret;
 	}
 
-	ret += setup_flash_device(&env_flash);
+	ret = setup_flash_device(&env_flash);
+	if (ret) {
+		debug("setup flash device failed\n");
+		return ret;
+	}
 
 	len = (bufsize < part.size) ? bufsize : part.size;
 	read_time = len >> 8; // / 0x100 read 0x100 size once

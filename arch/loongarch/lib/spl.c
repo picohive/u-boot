@@ -10,6 +10,8 @@ DECLARE_GLOBAL_DATA_PTR;
 extern void ddr_init(void);
 extern ulong spl_relocate_stack_gd(void);
 
+extern void printstr(const char* str);
+
 __weak void spl_mach_init(void)
 {
 	arch_cpu_init();
@@ -55,35 +57,41 @@ void __noreturn board_init_f(ulong dummy)
 	ulong new_sp;
 
 #ifdef DBG_ASM
-	printf("Enter board_init_f...\r\n");
+	printstr("Enter board_init_f...\r\n");
 #endif
+	printstr("[Glog] spl_mach_init init\r\n");
 	spl_mach_init();
+	printstr("[Glog] spl_early_init init\r\n");
 	ret = spl_early_init();
 	if (ret) {
 		debug("spl_early_init() failed: %d\n", ret);
 #ifdef DBG_ASM
-		printf("spl_early_init() failed.\r\n");
+		printstr("spl_early_init() failed.\r\n");
 #endif
 		hang();
 	}
 
+	printstr("[Glog] preloader_console_init init\r\n");
 	preloader_console_init();
 
 #if defined(CONFIG_SPL_MULTI_DTB_FIT)
+	printstr("[Glog] spl_dtb_select init\r\n");
 	if (spl_dtb_select()) {
 		printf("switch dtb failed\n");
 		hang();
 	}
 #endif
 
+	printstr("[Glog] spl_board_init_late init\r\n");
 	spl_board_init_late();
 
-	debug("spl sdram init ...\n");
+	printstr("[Glog] spl sdram init\r\n");
 	if (spl_sdram_init()) {
 		printf("spl sdram init failed\n");
 		hang();
 	}
 
+	printstr("[Glog] spl relocate stack gd\r\n");
 	// change the sp, gd and malloc to sdram space
 	new_sp = spl_relocate_stack_gd();
 	if (new_sp > 0) {
@@ -94,6 +102,8 @@ void __noreturn board_init_f(ulong dummy)
 			: "r"(new_sp));
 	}
 
+	printstr("[Glog] spl mach init late\r\n");
 	spl_mach_init_late();
+	printf("Jump to board_init_r.\n");
 	board_init_r(NULL, 0);
 }

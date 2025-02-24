@@ -444,6 +444,9 @@ int last_stage_init(void)
 #ifdef CONFIG_PHY_LS2K_USB
 	phy_ls2k_usb_init();
 #endif
+#ifdef CONFIG_PHY_LS2K_SATA
+	phy_ls2k_sata_init();
+#endif
 
 #ifdef CONFIG_LOONGSON_RECOVER
 	/*

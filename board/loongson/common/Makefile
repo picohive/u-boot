@@ -7,6 +7,9 @@
 
 obj-$(CONFIG_MACH_LOONGSON)		+= platform.o
 obj-$(CONFIG_MACH_LOONGSON)		+= bdinfo/
+ifdef CONFIG_I2C_EEPROM
+obj-$(CONFIG_MACH_LOONGSON)		+= nvmem_manager/
+endif
 obj-$(CONFIG_LOONGSON_COMPAT)		+= multi_boards_compat.o
 obj-$(CONFIG_MACH_LOONGSON)			+= board_kernel_product.o loongson_board_info.o
 
@@ -30,5 +33,6 @@ endif
 ifneq ($(findstring $(CONFIG_DM_VIDEO)$(CONFIG_VIDEO), y y),)
 obj-y += rotation_menu.o resolution_menu.o
 endif
+obj-$(CONFIG_LOGO_FROM_BOOT_DISK) += loongson_logo.o
 
 endif

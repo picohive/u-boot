@@ -1115,6 +1115,8 @@ static void McParamReconfig(struct mc_setting *mc)
 	Val64 = mc_read_reg64(mc, ECC_ENABLE_ADDR);
 	Val64 &= ~(0x7ULL << ECC_ENABLE_OFFSET);
 	mc_write_reg64(mc, ECC_ENABLE_ADDR, Val64);
+
+	mc_write_reg8(mc, PAD_RESET_PO, mc->reset_revert ? 0x2 : 0x0);
 }
 
 static void McConfSpace(struct mc_setting *mc, int enable)

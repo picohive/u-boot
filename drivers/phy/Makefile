@@ -40,5 +40,6 @@ obj-$(CONFIG_PHY_MTK_TPHY) += phy-mtk-tphy.o
 obj-$(CONFIG_PHY_IMX8MQ_USB) += phy-imx8mq-usb.o
 obj-$(CONFIG_PHY_XILINX_ZYNQMP) += phy-zynqmp.o
 obj-$(CONFIG_PHY_LS2K_USB) += ls2k_usb_phy.o
+obj-$(CONFIG_PHY_LS2K_SATA) += ls2k_sata_phy.o
 obj-$(CONFIG_CADENCE_GEN) += cadence/
 obj-$(CONFIG_TI_GEN) += ti/

@@ -26,6 +26,11 @@ config LOONGSON_BOOT_FIXUP
 	default y
 	depends on MACH_LOONGSON
 
+config LOONGSON_BOOT_WATCHDOG_DAEMON
+	bool "enable watchdog daemon when boot kernel."
+	default y
+	depends on MACH_LOONGSON
+
 config LOONGSON_RECOVER
 	bool "Enable the featrue Recovering system from usb/mmc/sata."
 	default n

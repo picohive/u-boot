@@ -225,9 +225,7 @@ start:
 	bl	init_serial
 	nop
 
-#ifdef DBG_ASM
-	PRINTSTR("\r\nLoongArch Initializing ...\r\n")
-#endif
+	PRINTSTR("[GLog] LA Init ...\r\n")
 	dbar 0
 	ibar 0
 	nop
@@ -250,9 +248,7 @@ start:
 
 	li.w	relc_reg, 0
 
-#ifdef DBG_ASM
-	PRINTSTR("\r\nU-boot start ...\r\n");
-#endif
+	PRINTSTR("[GLog] U-boot start ...\r\n");
 	b	locate
 #endif
 
@@ -264,9 +260,7 @@ locate:
 	li.d	a0, PHYS_TO_CACHED(MEM_WIN_BASE + 0x2000000)
   #endif
 #else
-#ifdef DBG_ASM
-	PRINTSTR("\r\nRAM(Cache AS RAM) Initializing ...\r\n")
-#endif
+	PRINTSTR("[GLog] RAM(Cache AS RAM) Initializing ...\r\n")
 	bl		ram_init
 	// now the ram top addr is in reg a0
 #endif
@@ -284,22 +278,21 @@ locate:
 #endif
 
 	// jump to uboot board_init_f.
-#ifdef DBG_ASM
-	PRINTSTR("\r\nJump to board_init_f...\r\n");
-#endif
+// #ifdef DBG_ASM
+// #endif
+	PRINTSTR("[GLog] Jump to board_init_f...\r\n");
 #if defined(CONFIG_SPL) && !defined(CONFIG_SPL_BUILD)
 	li.d  	a0, 0x00800		// GD_FLG_SKIP_RELOC
 #else
 	li.d  	a0, 0
 #endif
+
 	la		t8, board_init_f
 	jirl	ra, t8, 0
 
 #ifdef CONFIG_SPL
 	// jump to board_init_r
-#ifdef DBG_ASM
-	PRINTSTR("\r\nJump to board_init_r....\r\n");
-#endif
+	PRINTSTR("[GLog] Jump to board_init_r....\r\n");
 	ld.d	sp, gp, GD_START_ADDR_SP
 	ld.d	a0, gp, GD_NEW_GD
 	li.d  	a1, 0
@@ -308,7 +301,7 @@ locate:
 #endif
 
 	// Never get here!
-	PRINTSTR("Fatal error! please reset the board!\r\n")
+	PRINTSTR("[GLog] Fatal error! please reset the board!\r\n")
 1:
 	b 1b
 

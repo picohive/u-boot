@@ -53,7 +53,42 @@ config CPU_1000MHZ
 config CPU_1100MHZ
 	bool "1100MHz"
 	depends on SOC_LS2K1000 || SOC_LS2K300
+
+config CPU_1200MHZ
+	bool "1200MHz"
+	depends on SOC_LS2K1000 || SOC_LS2K300
 endchoice
+
+choice
+	prompt "Mem size special"
+	depends on SOC_LS2K1000
+	default LS_BOARD_MEM_SIZE_LE_2G
+
+config LS_BOARD_MEM_SIZE_LE_2G
+	bool "mem size <= 2GiB"
+	depends on SOC_LS2K1000
+	help
+	  Mem size <= 2GiB.
+
+config LS_BOARD_MEM_SIZE_LE_4G
+	bool "mem size <= 4GiB"
+	depends on SOC_LS2K1000
+	help
+	  Mem size <= 4GiB.
+
+config LS_BOARD_MEM_SIZE_LE_8G
+	bool "mem size <= 8GiB"
+	depends on SOC_LS2K1000
+	help
+	  Mem size <= 8GiB.
+endchoice
+
+config LS_ACPI_NOT_CONFIG
+	bool "loongson acpi not enable"
+	depends on SOC_LS2K1000
+	default n
+	help
+	  maybe not enable acpi so that reboot or poweroff cant used
 
 choice
 	prompt "Board select"
@@ -222,10 +257,11 @@ config CPU_FREQ
 	default 900 if CPU_900MHZ
 	default 1000 if CPU_1000MHZ
 	default 1100 if CPU_1100MHZ
+	default 1200 if CPU_1200MHZ
 
 source "board/loongson/Kconfig"
 
-choice 
+choice
 	prompt "DDR4 SDRAM Select"
 	depends on SOC_LS2K300
 	default LOONGSON_DDR4_DEFAULT

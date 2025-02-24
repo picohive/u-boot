@@ -77,4 +77,6 @@
 
 #define DBG_ASM
 
+#define SRAM_TOP (0x16114000-4)
+
 #endif /* __LOONGSON_LA_COMMON_H__ */

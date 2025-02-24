@@ -1,4 +1,5 @@
 #include <common.h>
+#include <command.h>
 #include <dm.h>
 #include <wdt.h>
 #include <stdio.h>
@@ -85,3 +86,46 @@ int ls_wdt_start(int ms) {return 0;}
 int ls_wdt_stop(void) {return 0;}
 int ls_wdt_restart(void) {return 0;}
 #endif
+
+static int do_loongson_watchdog_daemon(struct cmd_tbl *cmdtp, int flag, int argc, char * const argv[])
+{
+	int num;
+	int restart;
+	if(argc != 2)
+		return -1;
+
+	restart = 0;
+	if (argv[1][0] == 'p' && !argv[1][1]) {
+		restart = 1;
+		printf("restart watchdog daemon\n");
+	} else {
+		num = simple_strtoul(argv[1], NULL, 10);
+		if (argv[1][0] == '0' && !argv[1][1] && !num) {
+			printf("stop watchdog daemon\n");
+			ls_wdt_stop();
+			return 0;
+		} else if (num > 0) {
+			printf("start watchdog daemon [maybe timeout: %d ms]\n", num);
+		} else {
+			printf("ls_wdt_d Error: param invaild [param: %s]\n", argv[1]);
+			return -1;
+		}
+	}
+
+	if (restart) {
+		ls_wdt_restart();
+	} else {
+		ls_wdt_start(num);
+	}
+
+	return 0;
+}
+
+U_BOOT_CMD(
+	ls_wdt_d,    2,    0,     do_loongson_watchdog_daemon,
+	"init uboot env after reboot. [param: timeout ms]\r\n"
+	"ls_wdt_d 0 [mean stop watchdog]\r\n"
+	"ls_wdt_d p [mean restart watchdog]",
+	""
+);
+

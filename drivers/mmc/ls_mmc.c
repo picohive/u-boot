@@ -163,7 +163,7 @@ static int sdio_prepare_dma(struct sdio_host *host, struct mmc_data *data)
 		pr_debug("Invalid DMA address.\n");
 		return -EINVAL;
 	}
-	
+
 	desc->order_addr_low	= 0x0;
 	desc->saddr_low		= data_phy_addr;
 	desc->daddr		= host->ioaddr + SDIWRDAT;
@@ -171,11 +171,11 @@ static int sdio_prepare_dma(struct sdio_host *host, struct mmc_data *data)
 	desc->step_length	= 0x1;
 	desc->step_times	= 0x1;
 
-	pr_debug("data_phy_addr =  0x%lx,data->flags=%d\n",data_phy_addr,data->flags);
-	pr_debug("desc->order_addr_low = 0x%x\n",desc->order_addr_low);
-	pr_debug("desc->saddr_low = 0x%x\n",desc->saddr_low);
-	pr_debug("desc->daddr = 0x%x\n",desc->daddr);
-	pr_debug("desc->length = 0x%x\n",desc->length);
+	pr_debug("data_addr =  0x%llx, data->flags=%d\n", data_phy_addr, data->flags);
+	pr_debug("desc->order_addr_low = 0x%x\n", desc->order_addr_low);
+	pr_debug("desc->saddr_low = 0x%x\n", desc->saddr_low);
+	pr_debug("desc->daddr = 0x%x\n", desc->daddr);
+	pr_debug("desc->length = 0x%x\n", desc->length);
 
 	if (data->flags == MMC_DATA_READ) {
 		desc->cmd	= DMA_CMD_INTMSK;
@@ -272,6 +272,11 @@ static int sdio_send_cmd(struct udevice *dev, struct mmc_cmd *cmd, struct mmc_da
 	cmd_index = cmd->cmdidx;
 	flag = sdio_cmd_prepare_flag(cmd);
 	pr_debug("cmd_index = %d,cmd_arg = 0x%x\n",cmd->cmdidx,cmd->cmdarg);
+
+	// SD卡必须延时，否则sd nand(MK)协商为1-bit 模式
+	if (host->use_sdcard && ((host->mmc->cid[0] >> 24) & 0xFF) == SD_MID_MK)
+		mdelay(1);
+
 	if(cmd_index == MMC_CMD_STOP_TRANSMISSION)
 		return 0;
 
@@ -329,14 +334,22 @@ static int sdio_send_cmd(struct udevice *dev, struct mmc_cmd *cmd, struct mmc_da
 
 	// CMD 响应成功后再准备传输数据，否则SD卡会出奇怪的问题
 	if (data) {
-		if (host->use_sdcard)
-		{
+		if (host->use_sdcard) {
 			err = sdio_prepare_data(host, data);
 			if (err) {
 				return err;
 			}
-			// SD卡必须延时，否则丢读据
-			mdelay(1);
+
+          // MK(SD_NAND) 按 PRV 主版本号区分延时，旧型号(prv<4 实际是1.14) 4ms，新型号(prv>=4, 实际是4.13) 6ms
+          if (((host->mmc->cid[0] >> 24) & 0xFF) == SD_MID_MK) {
+              u8 prv_major = (host->mmc->cid[2] >> 20) & 0xf;
+              if (prv_major >= 4)
+                  mdelay(6);
+              else
+                  mdelay(4);
+          } else
+              mdelay(1);
+
 			err = sdio_prepare_dma(host, data);
 			if (err) {
 				return err;

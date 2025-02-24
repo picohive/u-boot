@@ -67,6 +67,9 @@ static int do_general_load(struct cmd_tbl *cmdtp, int flag, int argc, char * con
 			update_rootfs_target = 1;
 
 		if (update_rootfs_target) {
+			 // 不用保存，因为setup_cur_syspart(SYSPART_FIRST)会保存，避免过多刷写SPI FLASH
+			env_set("wdt_daemon", "0");
+
 			print_enable_setup(0);
 			setup_cur_syspart(SYSPART_FIRST);
 			print_enable_setup(1);

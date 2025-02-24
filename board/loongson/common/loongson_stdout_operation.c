@@ -90,7 +90,11 @@ void set_stdout(int type, int status)
 	char video_env[] = "vidconsole,vidconsole1";
 #endif
 	char* handle_env;
+#ifdef CONFIG_DM_VIDEO
 	char* handle_env_set[] = {serial_env, video_env};
+#else
+	char* handle_env_set[] = {serial_env};
+#endif
 	set_stdout_func set_stdout_func_set[] = {set_stdout_off, set_stdout_on, set_stdout_only_on};
 
 	if (type < STDOUT_SERIAL || type > STDOUT_VIDEO)

@@ -72,6 +72,8 @@
 #define tPHY_RDDATA_OFFSET	0x1c0
 #define tPHY_WRLAT_OFFSET	0x1d4
 
+#define PAD_RESET_PO        0x156
+
 #define WLVL_CHECK_BIT		0x01
 #define GLVL_CHECK_BIT		0x3
 #define WLVL_FILTER_LEN		0x5

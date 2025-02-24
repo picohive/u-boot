@@ -107,6 +107,21 @@ static void dev_fixup(void)
 	///*RTC toytrim rtctrim must init to 0, otherwise time can not update*/
 	//writel(0x0, LS_TOY_TRIM_REG);
 	//writel(0x0, LS_RTC_TRIM_REG);
+#ifdef CONFIG_MTD_SPI_NAND
+	// spi11 gpio60~63
+	val = readl(LS_GPIO_48_63_MULTI_CFG);
+	val |= (0x3 << 24) | (0x3 << 26) | (0x3 << 28) | (0x3 << 30);
+	writel(val, LS_GPIO_48_63_MULTI_CFG);
+
+	// gpio99 spi11 cs
+	val = readl(LS_GPIO_96_105_MULTI_CFG);
+	val &= ~(0x3 << 6);
+	writel(val, LS_GPIO_96_105_MULTI_CFG);
+
+	writel(0, LS_GPIO_DIR_BYTE_REG + 99);
+	writel(0, LS_GPIO_OUT_BYTE_REG + 99);
+
+#endif
 }
 
 /*enable fpu regs*/

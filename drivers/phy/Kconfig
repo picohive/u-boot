@@ -294,6 +294,12 @@ config PHY_LS2K_USB
 	help
 	  Support the loongson 2k usb PHY config
 
+config PHY_LS2K_SATA
+	bool "loongson 2k serial soc sata config phy"
+	depends on PHY
+	help
+	  Support the loongson 2k sata PHY config
+
 config ALLWINNER_GEN
 	bool "allwinner gen"
 	depends on PHY

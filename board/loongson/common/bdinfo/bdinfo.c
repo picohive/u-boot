@@ -10,9 +10,13 @@
 #include <linux/ctype.h>
 #include "bdinfo.h"
 #include "bdi_internal.h"
+#include "../nvmem_manager/nvmem_eeprom.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_I2C_EEPROM
+#define BDINFO_SYNC_NVMEM
+#endif
 
 static int htab_bdi_validate(const struct env_entry *item, const char *newval,
 			 enum env_op op, int flag);
@@ -46,7 +50,7 @@ static char default_bdinfo[] = {
 	"syspart_last=1\0"
 #endif
 #ifdef CONFIG_LOONGSON_FACTORY_BOOT
-	"factory_booted=0\n"
+	"factory_booted=0\0"
 #endif
 	"board_product_id=0\0"
 	"\0"
@@ -145,10 +149,10 @@ int bdinfo_init(void)
 {
 	if (bdinfo.status == BDI_VALID)
 		return 0;
-#ifdef CONFIG_I2C_EEPROM
-	// Try to load the board info from eeprom.
-	load_bdinfo_eeprom(&bdinfo);
-#endif
+// #ifdef CONFIG_I2C_EEPROM
+// 	// Try to load the board info from eeprom.
+// 	load_bdinfo_eeprom(&bdinfo);
+// #endif
 	// If can not get the board info from eeprom,
 	// we load it from spi-flash.
 	if (bdinfo.status == BDI_INVALID) {
@@ -182,21 +186,76 @@ int bdinfo_save_in_nv(void)
 	return (bdinfo.status == BDI_DEFAULT) ? 1 : 0;
 }
 
+#ifdef BDINFO_SYNC_NVMEM
+static int bdinfo_get_from_nvmem(enum bdi_id id)
+{
+	int ret;
+	int mac_id;
+	unsigned char mac_data[8];
+	char mac_str[32];
+
+	if (id < BDI_ID_MAC0 || id > BDI_ID_MAC1)
+		return 0;
+
+	mac_id = id - BDI_ID_MAC0;
+
+	ret = nvmem_get_mac(mac_id, mac_data);
+	if (ret)
+		return 1;
+	nvmem_mac_data_to_mac_str(mac_data, mac_str);
+	bdinfo_set(id, mac_str);
+	return 0;
+}
+#endif
+
 char* bdinfo_get(enum bdi_id id)
 {
+	int nvmem_need_init;
 	struct env_entry e, *ep;
+	char mac_str[32];
 
 	if (bdinfo.status == BDI_INVALID || id >= BDI_ID_MAX)
 		return NULL;
 
 	WATCHDOG_RESET();
 
+#ifdef BDINFO_SYNC_NVMEM
+	// something read from nvmem
+	nvmem_need_init = bdinfo_get_from_nvmem(id);
+#endif
+
 	e.key	= bdi_id_name[id];
 	e.data	= NULL;
 	hsearch_r(e, ENV_FIND, &ep, &bdinfo.htab, 0);
 
+	if (ep && nvmem_need_init) {
+		memset(mac_str, 0, 32);
+		memmove(mac_str, ep->data, strlen(ep->data));
+		mac_str[31] = 0;
+		bdinfo_set(id, mac_str);
+	}
+
 	return ep ? ep->data : NULL;
 }
+
+#ifdef BDINFO_SYNC_NVMEM
+static void bdinfo_set_to_nvmem(enum bdi_id id, const char* val)
+{
+	int ret;
+	int mac_id;
+	unsigned char mac_data[8];
+
+	if (id < BDI_ID_MAC0 || id > BDI_ID_MAC1)
+		return ;
+
+	mac_id = id - BDI_ID_MAC0;
+
+	ret = nvmem_mac_str_to_mac_data((char*)val, mac_data);
+	if (ret)
+		return ;
+	nvmem_set_mac(mac_id, mac_data);
+}
+#endif
 
 int bdinfo_set(enum bdi_id id, const char *val)
 {
@@ -226,6 +285,12 @@ int bdinfo_set(enum bdi_id id, const char *val)
 		return -EINVAL;
 	}
 
+#ifdef BDINFO_SYNC_NVMEM
+	// something save to nvmem
+	// so dont need save bdinfo next boot will be enable when bdinfo_get
+	bdinfo_set_to_nvmem(id, val);
+#endif
+
 	return 0;
 }
 
@@ -248,9 +313,9 @@ int bdinfo_save(void)
 	}
 
 	if (bdinfo.loc == BDI_LOC_EEPROM) {
-#ifdef CONFIG_I2C_EEPROM
-		ret = save_bdinfo_eeprom(&bdinfo, buf, len);
-#endif
+// #ifdef CONFIG_I2C_EEPROM
+// 		ret = save_bdinfo_eeprom(&bdinfo, buf, len);
+// #endif
 		if (ret) {
 			printf("save bdinfo to eeprom failed\n");
 			goto err_out;
@@ -262,13 +327,13 @@ int bdinfo_save(void)
 			goto err_out;
 		}
 	} else {
-#ifdef CONFIG_I2C_EEPROM
-		// try eeprom first
-		ret = save_bdinfo_eeprom(&bdinfo, buf, len);
-		// then spi-flash
-		if (ret)
-#endif
-			ret = save_bdinfo_sf(&bdinfo, buf, len);
+// #ifdef CONFIG_I2C_EEPROM
+// 		// try eeprom first
+// 		ret = save_bdinfo_eeprom(&bdinfo, buf, len);
+// 		// then spi-flash
+// 		if (ret)
+// #endif
+		ret = save_bdinfo_sf(&bdinfo, buf, len);
 	}
 
 err_out:

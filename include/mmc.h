@@ -48,6 +48,9 @@ struct bd_info;
 #define SD_VERSION_1_0		MAKE_SD_VERSION(1, 0, 0)
 #define SD_VERSION_1_10		MAKE_SD_VERSION(1, 10, 0)
 
+/* SD Manufacturer ID (CID[127:120]) */
+#define SD_MID_MK		0xF2	/* MK/Phison SD NAND */
+
 #define MMC_VERSION_UNKNOWN	MAKE_MMC_VERSION(0, 0, 0)
 #define MMC_VERSION_1_2		MAKE_MMC_VERSION(1, 2, 0)
 #define MMC_VERSION_1_4		MAKE_MMC_VERSION(1, 4, 0)

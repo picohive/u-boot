@@ -322,9 +322,13 @@ static int loongson_handle_ab_sys_status_change(int index)
 		// setup env ls_trigger_ab_sys_status boot2
 		ret = run_command("setenv ls_trigger_ab_sys_status boot2;saveenv", 0);
 	} else if (!strcmp(env_value, "boot1_wdt")) {
+#ifdef CONFIG_AB_SYSTEM_BOOT_WITH_WATCHDOG
 		printf("Detected new system (with boot failed detect)...\n");
 		// setup watchdog 34s 2k max is 34 s
 		ls_wdt_start(LS_WDT_DEFAULT_TIMEOUT_MS);
+#else
+		printf("Detected new system ...\n");
+#endif
 		// setup env ls_trigger_ab_sys_status boot2
 		ret = run_command("setenv ls_trigger_ab_sys_status boot2;saveenv", 0);
 	} else if (!strcmp(env_value, "boot2")) {
@@ -346,7 +350,7 @@ static void loongson_tip_ab_sys_status_change(void)
 	printf("\tvalue:\n");
 	printf("\t\t0       : no handle\n");
 	printf("\t\tboot1   : new system first boot(uboot will change it to be boot2)\n");
-	printf("\t\boot1_wdt: new system first boot and use watchdog detect auto run back(uboot will change it to be boot2)\n");
+	printf("\t\tboot1_wdt: new system first boot and use watchdog detect auto run back(uboot will change it to be boot2)\n");
 	printf("\t\tboot2   : new system first boot failed(system need set this value to be 0, either uboot will boot last disk)\n");
 	printf("\t\boot4    : to old system known install ab system failed\n");
 	printf("\n");

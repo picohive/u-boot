@@ -96,6 +96,22 @@ static const struct spinand_info winbond_spinand_table[] = {
 					      &update_cache_variants),
 		     0,
 		     SPINAND_ECCINFO(&w25m02gv_ooblayout, NULL)),
+	/*
+	 * W25N02KV: 2Gbit (256MB) SLC SPI NAND, 2048+128 byte pages,
+	 * 128KB erase blocks. On-die ECC is 8-bit/512B. It reuses the
+	 * W25M02GV OOB layout. Note that W25N01GV and W25N02KV share the
+	 * same memory-type byte (id[2] == 0xAA) and are only distinguished
+	 * by the capacity byte (id[3]: 0x21 vs 0x22), so detection must key
+	 * on id[3] (see winbond_spinand_detect).
+	 */
+	SPINAND_INFO("W25N02KV", 0x22,
+		     NAND_MEMORG(1, 2048, 128, 64, 2048, 1, 1, 1),
+		     NAND_ECCREQ(8, 512),
+		     SPINAND_INFO_OP_VARIANTS(&read_cache_variants,
+					      &write_cache_variants,
+					      &update_cache_variants),
+		     0,
+		     SPINAND_ECCINFO(&w25m02gv_ooblayout, NULL)),
 };
 
 /**
@@ -114,6 +130,19 @@ static int winbond_spinand_detect(struct spinand_device *spinand)
 	 */
 	if (id[1] != SPINAND_MFR_WINBOND)
 		return 0;
+
+	/*
+	 * W25N01GV (id[3]=0x21) and W25N02KV (id[3]=0x22) share the same
+	 * memory-type byte (id[2]=0xAA). Match the higher-capacity part on
+	 * its capacity byte first; otherwise it would be misdetected as
+	 * W25N01GV by the generic id[2] lookup below.
+	 */
+	if (id[2] == 0xAA && id[3] == 0x22) {
+		ret = spinand_match_and_init(spinand, winbond_spinand_table,
+					     ARRAY_SIZE(winbond_spinand_table),
+					     0x22);
+		return ret ? ret : 1;
+	}
 
 	ret = spinand_match_and_init(spinand, winbond_spinand_table,
 				     ARRAY_SIZE(winbond_spinand_table), id[2]);

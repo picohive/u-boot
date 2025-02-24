@@ -3,6 +3,6 @@
 #ifndef __LOONGSON_BOOT_H__
 #define __LOONGSON_BOOT_H__
 
-#define LOONGSON_BOOT_TYPE_SIZE 4
+#define LOONGSON_BOOT_TYPE_SIZE 5
 
 #endif

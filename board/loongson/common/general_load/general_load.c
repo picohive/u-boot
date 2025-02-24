@@ -446,7 +446,6 @@ int general_load(gl_target_t* src, gl_target_t* dest, enum gl_extra_e extra)
 	};
 	if (ldbr_init(&ldbr, src, dest, extra))
 		return -1;
-	ldbr_run(&ldbr);
-	return 0;
+	return ldbr_run(&ldbr);
 }
 

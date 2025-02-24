@@ -1343,13 +1343,32 @@ static int sd_get_capabilities(struct mmc *mmc)
 	if (mmc->version == SD_VERSION_1_0)
 		return 0;
 
+	/*
+	 * SD NAND cards (MID=0xF2, MK) with SCR version < v2.0
+	 * respond to CMD8 but don't support CMD6 SWITCH_FUNC.
+	 * Skip CMD6 entirely to avoid unnecessary timeouts, and
+	 * force 50MHz.  Higher SCR versions are allowed through in
+	 * case future MK models support CMD6.
+	 */
+	if (((mmc->cid[0] >> 24) & 0xFF) == SD_MID_MK &&
+	    mmc->version < SD_VERSION_2) {
+		printf("SD NAND (MID=0x%02x, ver=%d): skip CMD6, force 50MHz\n",
+		       SD_MID_MK, mmc->version);
+		mmc->version = SD_VERSION_1_0;
+		mmc->tran_speed = 50000000;
+		return 0;
+	}
+
 	timeout = 4;
 	while (timeout--) {
 		err = sd_switch(mmc, SD_SWITCH_CHECK, 0, 1,
 				(u8 *)switch_status);
 
-		if (err)
-			return err;
+		if (err) {
+			printf("SD CMD6 switch check failed, falling back to SD v1.0 mode\n");
+			mmc->version = SD_VERSION_1_0;
+			return 0;
+		}
 
 		/* The high-speed function is busy.  Try again */
 		if (!(__be32_to_cpu(switch_status[7]) & SD_HIGHSPEED_BUSY))
@@ -1788,6 +1807,20 @@ static int sd_select_mode_and_width(struct mmc *mmc, uint card_caps)
 				mmc_set_clock(mmc, mmc->tran_speed,
 						MMC_CLK_ENABLE);
 
+			/*
+			 * SD NAND (MID=0xF2, ver < v2.0): CMD6 was
+			 * skipped in sd_get_capabilities() and
+			 * tran_speed was forced to 50MHz.  Ensure the
+			 * host clock is applied even if the mode loop
+			 * retried and changed tran_speed.
+			 */
+			if (((mmc->cid[0] >> 24) & 0xFF) == SD_MID_MK &&
+			    mmc->version == SD_VERSION_1_0) {
+				mmc->tran_speed = 50000000;
+				mmc_set_clock(mmc, 50000000,
+					      MMC_CLK_ENABLE);
+			}
+
 #ifdef MMC_SUPPORTS_TUNING
 				/* execute tuning if needed */
 				if (mwt->tuning && !mmc_host_is_spi(mmc)) {
@@ -1801,9 +1834,13 @@ static int sd_select_mode_and_width(struct mmc *mmc, uint card_caps)
 #endif
 
 #if CONFIG_IS_ENABLED(MMC_WRITE)
-				err = sd_read_ssr(mmc);
-				if (err)
-					pr_warn("unable to read ssr\n");
+				// 仅 MK 卡且版本为 1.0 时跳过读取 SSR，因为它们不支持 CMD6，且读取 SSR 可能会失败
+				if (((mmc->cid[0] >> 24) & 0xFF) != SD_MID_MK ||
+					mmc->version != SD_VERSION_1_0) {
+					err = sd_read_ssr(mmc);
+					if (err)
+						pr_warn("unable to read ssr\n");
+				}
 #endif
 				if (!err)
 					return 0;

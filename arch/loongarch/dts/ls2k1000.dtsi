@@ -594,6 +594,12 @@
 			status = "disabled";
 		};
 
+		sata_config_phy: sata_config_phy@1fe00450 {
+			compatible = "ls2k-sata-phy";
+			reg = <0 0x1fe00450 0 0x8>;
+			status = "disable";
+		};
+
 		usb_config_phy0: usb_config_phy@1fe00440 {
 			compatible = "ls2k-usb-phy";
 			reg = <0 0x1fe00440 0 0x4>;

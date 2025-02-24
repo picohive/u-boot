@@ -41,6 +41,15 @@ ENTRY(lowlevel_init)
 # 	bne	t2, t1, spi_quad_io
 # #endif
 
+#if !defined(CONFIG_SPL) || defined(CONFIG_SPL_BUILD)
+	li.d	sp, SRAM_TOP - 12
+	bl      boot_fixup
+	li.w    t0, 0x28
+	csrwr   t0, LOONGARCH_CSR_CRMD
+#endif
+
+	li.d	t0, LS_GENERAL_CFG0
+
 	/*close usb & ddr soft reset: [0] ddr, [7] usbm*/
 	li.w  	t1, 0xffffff7e
 	st.w 	t1, t0, 0x1c
@@ -49,6 +58,29 @@ ENTRY(lowlevel_init)
 	ld.w	t1, t0, 0x1c
 	ori     t1, t1, 0x1
 	st.w 	t1, t0, 0x1c
+
+	li.d    t0, LS_GPIO_DIR_BIT_REG
+	li.d    t1, 0xff
+
+	st.b    t1, t0, 0x0
+	st.b    t1, t0, 0x1
+	st.b    t1, t0, 0x2
+	st.b    t1, t0, 0x3
+
+	st.b    t1, t0, 0x4
+	st.b    t1, t0, 0x5
+	st.b    t1, t0, 0x6
+	st.b    t1, t0, 0x7
+
+	st.b    t1, t0, 0x8
+	st.b    t1, t0, 0x9
+	st.b    t1, t0, 0xa
+	st.b    t1, t0, 0xb
+
+	st.b    t1, t0, 0xc
+	st.b    t1, t0, 0xd
+	st.b    t1, t0, 0xe
+	st.b    t1, t0, 0xf
 
 	/*[103:96] en [111:104] coherent*/
 	/*0:cpu    1:usb     2:gmac0    3:gmac1   4:dc

@@ -1051,6 +1051,13 @@ config INIT_USB_INPUT_DEV_BOOT
 	  this is enable usb scan dev when boot
 	  just for check keyboard(or other) to let it input vaild
 
+config AB_SYSTEM_BOOT_WITH_WATCHDOG
+	bool "AB system first boot with watchdog daemon"
+	default y
+	help
+	  AB system in loongson gd board
+	  first boot need watchdog detect boot failed (Y)
+
 config LOGO_FILE_NAME
 	string "logo file name (just support bmp)"
 	default "loongson"
@@ -1060,6 +1067,13 @@ config LOGO_FILE_NAME
 	  e.g.
 	  loongson.bmp
 	  this option value is loongson
+
+config LOGO_FROM_BOOT_DISK
+	bool "logo file from boot disk"
+	default n
+	help
+	  this option can let logo filee from boot disk
+	  logo file is /boot/logo.bmp
 
 config LINUX_KERNEL_LOG_CLOSE
 	bool "close linux kernel log(loglevel=0)"

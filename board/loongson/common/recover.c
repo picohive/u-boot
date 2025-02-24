@@ -322,6 +322,7 @@ static int do_recover_to_last(void)
 */
 static int do_recover_cmd(struct cmd_tbl *cmdtp, int flag, int argc, char * const argv[])
 {
+	char* wdt_daemon_value;
 	int ret = -1;
 	if (argc < 2) {
 		return ret;
@@ -337,6 +338,15 @@ static int do_recover_cmd(struct cmd_tbl *cmdtp, int flag, int argc, char * cons
 			install_target = 1;
 	}
 
+	print_enable_setup(0);
+	wdt_daemon_value = env_get("wdt_daemon");
+	if (wdt_daemon_value) {
+		if (!(wdt_daemon_value[0] == '0' && !wdt_daemon_value[1])) {
+			env_set("wdt_daemon", "0");
+			env_save();
+		}
+	}
+	print_enable_setup(1);
 	if (strcmp(argv[1], "usb") == 0) {
 		ret = do_recover_from_usb();
 	}

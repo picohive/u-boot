@@ -125,6 +125,30 @@ static void linux_cmdline_legacy(bootm_headers_t *images)
 
 		bootargs = next;
 	}
+#if defined(CONFIG_LOONGSON_BOOT_WATCHDOG_DAEMON)
+	{
+		char* str;
+		str = env_get("wdt_daemon_support");
+		if (!str)
+			linux_cmdline_set("wdt_daemon_support=0", 20);
+		else {
+			if (!strcmp(str, "1"))
+				linux_cmdline_set("wdt_daemon_support=1", 20);
+			else
+				linux_cmdline_set("wdt_daemon_support=0", 20);
+		}
+
+		str = env_get("wdt_daemon");
+		if (!str)
+			linux_cmdline_set("wdt_daemon=0", 12);
+		else {
+			if (!strcmp(str, "1"))
+				linux_cmdline_set("wdt_daemon=1", 12);
+			else
+				linux_cmdline_set("wdt_daemon=0", 12);
+		}
+	}
+#endif
 }
 
 // static void linux_cmdline_append(bootm_headers_t *images)
@@ -322,6 +346,19 @@ static void boot_jump_linux(bootm_headers_t *images)
 	bootstage_report();
 #endif
 
+	/*
+	 * watchdog enable
+	 */
+#if defined(CONFIG_LOONGSON_BOOT_WATCHDOG_DAEMON)
+	{
+		char* wdt_enable;
+		wdt_enable = env_get("wdt_daemon");
+		if (!strcmp(wdt_enable, "1")) {
+			run_command("ls_wdt_d 30000", 0);
+		}
+	}
+#endif
+
 #if defined(CONFIG_LOONGSON_BOOT_FIXUP)
 	bootparam = build_boot_param();
 	if (judge_boot_param_type(images)) {
@@ -333,7 +370,7 @@ static void boot_jump_linux(bootm_headers_t *images)
 
 		// 新的传参规范里面无需把 command line 拆开成一个一个 直接字符串传进去就好
 		// 下标 0 的元素必定为 NULL 无视即可
-		linux_command_line = (char*)calloc(256, sizeof(char));
+		linux_command_line = (char*)calloc(512, sizeof(char));
 		sprintf(linux_command_line, "%s", linux_argv[1]);
 		for (i = 2; i < linux_argc; ++i) {
 			sprintf(linux_command_line, "%s %s", linux_command_line, linux_argv[i]);
