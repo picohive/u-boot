@@ -1,0 +1,34 @@
+#include "ls2k300.dtsi"
+#include "ls2k300_ddr_samsung_512m.dtsi"
+#include "ls2k300_99pi.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/power-domain/ls2k500-power-domain.h>
+
+/ {
+	sysinfo-smbios {
+		compatible = "u-boot,sysinfo-smbios";
+		u-boot,dm-pre-reloc;
+
+		smbios {
+			system {
+				manufacturer = "Loongson";
+				product = "LS2K300";
+			};
+
+			baseboard {
+				manufacturer = "Loongson";
+				product = "LS2K300-99PI-TF";
+			};
+
+			chassis {
+				manufacturer = "Loongson";
+				product = "LS2K300-99PI-TF";
+			};
+		};
+	};
+};
+
+&sdio1 {
+	status = "okay";
+	use-sdcard;
+};
